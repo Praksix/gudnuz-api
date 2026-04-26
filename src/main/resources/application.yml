@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/gudnuz
-    username: gudnuz_user
-    password: gudnuz_pass
+    url: jdbc:postgresql://localhost:5433/${DB_NAME:gudnuz}
+    username: ${DB_USERNAME:gudnuz_user}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -14,5 +14,5 @@ spring:
 application:
   security:
     jwt:
-      secret-key: iwtK9cLjgpssffN/bfqfDbd3K8Y3XOFCCgZzODICz/o=
-      expiration: 86400000
+      secret-key: ${JWT_SECRET_KEY}
+      expiration: ${JWT_EXPIRATION:86400000}

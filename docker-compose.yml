@@ -21,9 +21,9 @@ services:
     # Variables d'environnement lues par PostgreSQL au premier démarrage
     # Elles configurent automatiquement la base, l'utilisateur et le mot de passe
     environment:
-      POSTGRES_DB: gudnuz           # Nom de la base de données créée automatiquement
-      POSTGRES_USER: gudnuz_user    # Utilisateur PostgreSQL créé automatiquement
-      POSTGRES_PASSWORD: gudnuz_pass # Mot de passe de cet utilisateur
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
 
     # Mapping de ports — format "hôte:container"
     # PostgreSQL écoute toujours sur 5432 à l'intérieur du container
@@ -75,11 +75,11 @@ services:
       # "db" = nom du service Docker ci-dessus — Docker résout ce nom en IP interne automatiquement
       # Le port ici est 5432 (port interne du container db), pas 5433 (port hôte)
       # Les deux containers communiquent via le réseau interne Docker, sans passer par ta machine
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/gudnuz
-      SPRING_DATASOURCE_USERNAME: gudnuz_user    # Doit correspondre à POSTGRES_USER ci-dessus
-      SPRING_DATASOURCE_PASSWORD: gudnuz_pass    # Doit correspondre à POSTGRES_PASSWORD ci-dessus
-      APPLICATION_SECURITY_JWT_SECRET_KEY: iwtK9cLjgpssffN/bfqfDbd3K8Y3XOFCCgZzODICz/o=
-      APPLICATION_SECURITY_JWT_EXPIRATION: 86400000
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      APPLICATION_SECURITY_JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      APPLICATION_SECURITY_JWT_EXPIRATION: ${JWT_EXPIRATION}
 
 # ╔══════════════════════════════════════════════════════════════╗
 # ║                       VOLUMES                               ║

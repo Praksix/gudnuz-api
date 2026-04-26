@@ -10,3 +10,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+application:
+  security:
+    jwt:
+      secret-key: iwtK9cLjgpssffN/bfqfDbd3K8Y3XOFCCgZzODICz/o=
+      expiration: 86400000

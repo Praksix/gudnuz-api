@@ -38,6 +38,13 @@ services:
     volumes:
       - gudnuz-data:/var/lib/postgresql/data
 
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U gudnuz_user -d gudnuz" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+
   # ╔══════════════════════════════════════════════════════════════╗
   # ║                    SERVICE : api                            ║
   # ║  Container Spring Boot — l'API Java                         ║
@@ -59,7 +66,8 @@ services:
     # Attention : garantit uniquement l'ordre de démarrage, pas que PostgreSQL soit prêt
     # (Spring Boot a un mécanisme de retry intégré pour gérer ça)
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
     # Variables d'environnement injectées dans le container Spring Boot
     # Elles surchargent les valeurs de application.yml au moment du démarrage
@@ -70,6 +78,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/gudnuz
       SPRING_DATASOURCE_USERNAME: gudnuz_user    # Doit correspondre à POSTGRES_USER ci-dessus
       SPRING_DATASOURCE_PASSWORD: gudnuz_pass    # Doit correspondre à POSTGRES_PASSWORD ci-dessus
+      APPLICATION_SECURITY_JWT_SECRET_KEY: iwtK9cLjgpssffN/bfqfDbd3K8Y3XOFCCgZzODICz/o=
+      APPLICATION_SECURITY_JWT_EXPIRATION: 86400000
 
 # ╔══════════════════════════════════════════════════════════════╗
 # ║                       VOLUMES                               ║
@@ -79,3 +89,4 @@ services:
 # Ces données survivent aux `docker compose down` (supprimés seulement avec `docker compose down -v`)
 volumes:
   gudnuz-data:
+  gudnuz-uploads:

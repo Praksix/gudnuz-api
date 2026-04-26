@@ -48,5 +48,5 @@ COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 
 # Commande exécutée au démarrage du container
-# Forme JSON (recommandée) : évite que la commande passe par un shell intermédiaire
+# Forme JSON (recommandée) : évite que la comm ande passe par un shell intermédiaire
 ENTRYPOINT ["java", "-jar", "app.jar"]

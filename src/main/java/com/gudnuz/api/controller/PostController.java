@@ -41,8 +41,8 @@ public class PostController {
 
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> getFeed(@RequestParam(required = false) String categorie) {
-        return ResponseEntity.ok(postService.getFeed(categorie));
+    public ResponseEntity<List<PostResponse>> getFeed(@RequestParam(required = false) String categorie, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(postService.getFeed(categorie, userDetails.getUsername()));
     }
 
     @GetMapping("/me")

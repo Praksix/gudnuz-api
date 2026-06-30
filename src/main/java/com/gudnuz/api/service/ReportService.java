@@ -4,6 +4,7 @@ import com.gudnuz.api.dto.request.ReportRequest;
 import com.gudnuz.api.model.Post;
 import com.gudnuz.api.model.PostReport;
 import com.gudnuz.api.model.User;
+import com.gudnuz.api.exception.DuplicateResourceException;
 import com.gudnuz.api.repository.PostReportRepository;
 import com.gudnuz.api.repository.PostRepository;
 import com.gudnuz.api.repository.UserRepository;
@@ -23,7 +24,7 @@ public class ReportService {
         Post post = postRepository.findById(postId).orElseThrow();
 
         if (postReportRepository.existsByUserAndPost(user, post)){
-           throw new RuntimeException("Vous avez déjà signalé ce post");
+            throw new DuplicateResourceException("Vous avez déjà signalé ce post");
 
         }
 

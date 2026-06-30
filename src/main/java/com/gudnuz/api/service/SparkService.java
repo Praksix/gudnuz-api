@@ -27,20 +27,21 @@ public class SparkService {
         User user = userRepository.findByEmail(email).orElseThrow();
         Post post = postRepository.findById(postId).orElseThrow();
 
-        if (userPostSparkRepository.existsByUserAndPost(user, post)){
+        boolean wasSparked = userPostSparkRepository
+                .existsByUserAndPost(user, post);  // requête dans la table user_post_sparks
+
+        if (wasSparked) {
             userPostSparkRepository.deleteByUserAndPost(user, post);
             post.setSparksCount(post.getSparksCount() - 1);
-
-        }else {
-
+        } else {
             UserPostSpark userPostSpark = UserPostSpark.builder()
                     .user(user)
                     .post(post)
                     .build();
-
-        userPostSparkRepository.save(userPostSpark);
-        post.setSparksCount(post.getSparksCount() + 1);
+            userPostSparkRepository.save(userPostSpark);
+            post.setSparksCount(post.getSparksCount() + 1);
         }
+
 
         postRepository.save(post);
 
@@ -55,6 +56,7 @@ public class SparkService {
                 .sparksCount(post.getSparksCount())
                 .pseudo(post.getUser().getPseudo())
                 .createdAt(post.getCreatedAt())
+                .isSparked(!wasSparked)
                 .build();
 
 

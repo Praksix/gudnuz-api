@@ -15,12 +15,14 @@ import java.util.UUID;
 public class PostResponse {
 
     private UUID id;
+    private String userId;
     private String titre;
     private String contenu;
     private String source;
     private String imageUrl;
     private String categorie;
     private int sparksCount;
+    private boolean isSparked;
     private String pseudo;
     private LocalDateTime createdAt;
 }

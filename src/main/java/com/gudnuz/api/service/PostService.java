@@ -5,7 +5,9 @@ import com.gudnuz.api.dto.response.PostResponse;
 import com.gudnuz.api.model.Post;
 import com.gudnuz.api.model.User;
 import com.gudnuz.api.model.enums.Categorie;
+import com.gudnuz.api.exception.BusinessException;
 import com.gudnuz.api.repository.PostRepository;
+import com.gudnuz.api.repository.UserPostSparkRepository;
 import com.gudnuz.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,13 +25,15 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final UserPostSparkRepository userPostSparkRepository;
+
 
     public PostResponse createPost(String titre, String contenu, String categorie, String source, MultipartFile image, String email) throws IOException, IOException {
         User user = userRepository.findByEmail(email).orElseThrow();
         Categorie cat = Categorie.valueOf(categorie.toUpperCase());
 
         if (cat == Categorie.ACTU && (source == null || source.isBlank())) {
-            throw new RuntimeException("La source est obligatoire pour les posts de catégorie ACTU");
+            throw new BusinessException("La source est obligatoire pour les posts de catégorie ACTU");
         }
 
         // Si une image est envoyée, on la sauvegarde et on récupère le nom du fichier
@@ -41,6 +45,7 @@ public class PostService {
 
         Post post = Post.builder()
                 .titre(titre)
+                .titre(titre)
                 .contenu(contenu)
                 .source(source)
                 .categorie(cat)
@@ -50,60 +55,46 @@ public class PostService {
 
         postRepository.save(post);
 
-        return mapToResponse(post);
+        return mapToResponse(post, user);
     }
 
 
-    public List<PostResponse> getFeed (String categorie) {
-
+    public List<PostResponse> getFeed(String categorie, String email) {
+        User user = userRepository.findByEmail(email).orElseThrow();
         LocalDateTime since = LocalDateTime.now().minusHours(24);
 
-        if (categorie == null){
-            List<Post> posts = postRepository.findByCreatedAtAfterOrderByCreatedAtDesc(since);
-            return posts.stream()
-                    .map(this::mapToResponse)
-                    .toList();
+        List<Post> posts = (categorie == null || "TOP".equals(categorie))
+                ? postRepository.findTopPostsSince(since)
+                : postRepository.findByCreatedAtAfterAndCategorieOrderByCreatedAtDesc(since, Categorie.valueOf(categorie.toUpperCase()));
 
-        }
-
-        Categorie cat = Categorie.valueOf(categorie.toUpperCase());
-        List<Post> posts = postRepository.findByCreatedAtAfterAndCategorieOrderByCreatedAtDesc(since, cat);
         return posts.stream()
-                .map(this::mapToResponse)
+                .map(post -> mapToResponse(post, user))
                 .toList();
-
-
-
-
-
-
-
-
-
     }
 
-    public List<PostResponse> getPostsByUser (UUID userId) {
 
+    public List<PostResponse> getPostsByUser(UUID userId, String viewerEmail) {
+        User viewer = userRepository.findByEmail(viewerEmail).orElseThrow();
         List<Post> posts = postRepository.findByUserIdOrderByCreatedAtDesc(userId);
-
         return posts.stream()
-                .map(this::mapToResponse)
+                .map(post -> mapToResponse(post, viewer))
                 .toList();
-
     }
 
 
     public List<PostResponse> getMyPosts(String email) {
         User user = userRepository.findByEmail(email).orElseThrow();
-        return getPostsByUser(user.getId());
+        return getPostsByUser(user.getId(), email);
     }
 
 
 
 
-    private PostResponse mapToResponse(Post post) {
+    private PostResponse mapToResponse(Post post, User user) {
+        boolean isSparked = userPostSparkRepository.existsByUserAndPost(user, post);
         return PostResponse.builder()
                 .id(post.getId())
+                .userId(post.getUser().getId().toString())
                 .titre(post.getTitre())
                 .contenu(post.getContenu())
                 .source(post.getSource())
@@ -112,8 +103,11 @@ public class PostService {
                 .sparksCount(post.getSparksCount())
                 .pseudo(post.getUser().getPseudo())
                 .createdAt(post.getCreatedAt())
+                .isSparked(isSparked)
                 .build();
     }
+
+
 
 
 

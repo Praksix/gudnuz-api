@@ -5,6 +5,7 @@ import com.gudnuz.api.dto.request.RegisterRequest;
 import com.gudnuz.api.dto.response.AuthResponse;
 import com.gudnuz.api.model.User;
 import com.gudnuz.api.model.enums.Role;
+import com.gudnuz.api.exception.DuplicateResourceException;
 import com.gudnuz.api.repository.UserRepository;
 import com.gudnuz.api.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
         // Si l'email existe déjà en base, on refuse l'inscription
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email déjà utilisé");
+            throw new DuplicateResourceException("Email déjà utilisé");
         }
 
         // Construction de l'entité User via le Builder Lombok

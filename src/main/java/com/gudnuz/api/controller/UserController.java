@@ -34,8 +34,8 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/posts")
-    public ResponseEntity<List<PostResponse>> getUserPosts(@PathVariable UUID userId) {
-        return ResponseEntity.ok(userService.getUserPosts(userId));
+    public ResponseEntity<List<PostResponse>> getUserPosts(@PathVariable UUID userId, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(userService.getUserPosts(userId, userDetails.getUsername()));
     }
 
 }

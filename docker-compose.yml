@@ -69,6 +69,9 @@ services:
       db:
         condition: service_healthy
 
+    volumes:
+      - gudnuz-uploads:/app/uploads
+
     # Variables d'environnement injectées dans le container Spring Boot
     # Elles surchargent les valeurs de application.yml au moment du démarrage
     environment:
@@ -80,6 +83,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       APPLICATION_SECURITY_JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       APPLICATION_SECURITY_JWT_EXPIRATION: ${JWT_EXPIRATION}
+      # Doit correspondre au point de montage du volume gudnuz-uploads ci-dessous
+      UPLOAD_DIR: /app/uploads
 
 # ╔══════════════════════════════════════════════════════════════╗
 # ║                       VOLUMES                               ║

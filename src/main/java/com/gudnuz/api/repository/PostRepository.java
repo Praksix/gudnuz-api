@@ -15,7 +15,7 @@ import java.util.UUID;
 @Repository
 public interface PostRepository extends JpaRepository<Post, UUID> {
 
-    List<Post> findByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime since);
+    //List<Post> findByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime since);
     List<Post> findByCreatedAtAfterAndCategorieOrderByCreatedAtDesc(LocalDateTime since, Categorie categorie);
 
     List<Post> findByUserIdOrderByCreatedAtDesc(UUID userId);
@@ -25,5 +25,12 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     List<Post> findTopPostsSince(@Param("since") LocalDateTime since);
 
     List<Post> findByStatutOrderByCreatedAtDesc(PostStatut statut);
+
+    int countByUserId(UUID userId);
+
+    int countByUserIdAndStatut(UUID userId, PostStatut statut);
+
+
+
 
 }

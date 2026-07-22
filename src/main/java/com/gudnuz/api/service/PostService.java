@@ -1,18 +1,17 @@
 package com.gudnuz.api.service;
 
-import com.gudnuz.api.dto.request.CreatePostRequest;
 import com.gudnuz.api.dto.response.PostResponse;
 import com.gudnuz.api.model.Post;
 import com.gudnuz.api.model.User;
 import com.gudnuz.api.model.enums.Categorie;
 import com.gudnuz.api.exception.BusinessException;
+import com.gudnuz.api.exception.ResourceNotFoundException;
 import com.gudnuz.api.repository.PostRepository;
 import com.gudnuz.api.repository.UserPostSparkRepository;
 import com.gudnuz.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,9 +25,10 @@ public class PostService {
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
     private final UserPostSparkRepository userPostSparkRepository;
+    private final OgImageService ogImageService;
 
 
-    public PostResponse createPost(String titre, String contenu, String categorie, String source, MultipartFile image, String email) throws IOException, IOException {
+    public PostResponse createPost(String titre, String contenu, String categorie, String source, MultipartFile image, String email) throws IOException {
         User user = userRepository.findByEmail(email).orElseThrow();
         Categorie cat = Categorie.valueOf(categorie.toUpperCase());
 
@@ -42,9 +42,12 @@ public class PostService {
             String fileName = fileStorageService.storeFile(image);
             imageUrl = "/uploads/" + fileName;
         }
+        else if (cat == Categorie.ACTU && (image == null || image.isEmpty()) && source != null) {
+
+            imageUrl = ogImageService.extractImageUrl(source);
+        }
 
         Post post = Post.builder()
-                .titre(titre)
                 .titre(titre)
                 .contenu(contenu)
                 .source(source)

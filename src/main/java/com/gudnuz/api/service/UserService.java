@@ -2,6 +2,7 @@ package com.gudnuz.api.service;
 
 import com.gudnuz.api.dto.response.PostResponse;
 import com.gudnuz.api.dto.response.UserResponse;
+import com.gudnuz.api.exception.ResourceNotFoundException;
 import com.gudnuz.api.model.User;
 import com.gudnuz.api.model.enums.PostStatut;
 import com.gudnuz.api.repository.PostRepository;
@@ -23,7 +24,8 @@ public class UserService {
     private final UserPostSparkRepository userPostSparkRepository;
 
     public UserResponse getMyProfile (String email) {
-        User user = userRepository.findByEmail(email).orElseThrow();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable : " + email));
         return UserResponse.builder()
                 .id(user.getId())
                 .pseudo(user.getPseudo())
@@ -40,7 +42,8 @@ public class UserService {
     }
 
     public UserResponse getUserProfile (UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable : " + userId));
         return UserResponse.builder()
                 .id(user.getId())
                 .pseudo(user.getPseudo())

@@ -57,7 +57,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         // Tout le reste nécessite un JWT valide
-                        .anyRequest().permitAll()
+                        // fullyAuthenticated() (et pas authenticated()) car un
+                        // AnonymousAuthenticationToken a isAuthenticated()=true :
+                        // authenticated() laisserait passer les requêtes sans JWT
+                        .anyRequest().fullyAuthenticated()
                 )
 
                 // Insère notre filtre JWT AVANT le filtre par défaut de Spring

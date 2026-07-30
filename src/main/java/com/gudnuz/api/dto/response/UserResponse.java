@@ -16,6 +16,7 @@ public class UserResponse {
 
     private UUID id;
     private String pseudo;
+    private String avatarUrl;
     private String bio;
     private String email;
     private String role;

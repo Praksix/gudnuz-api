@@ -24,5 +24,6 @@ public class PostResponse {
     private int sparksCount;
     private boolean isSparked;
     private String pseudo;
+    private String avatarUrl;
     private LocalDateTime createdAt;
 }

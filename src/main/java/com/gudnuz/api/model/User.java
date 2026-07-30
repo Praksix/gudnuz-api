@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -33,6 +34,9 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String pseudo;
 
+    @Column
+    private String avatarUrl;
+
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -54,6 +58,11 @@ public class User implements UserDetails {
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Builder.Default
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private Boolean deleted = false;
 
 
 
@@ -88,7 +97,5 @@ public class User implements UserDetails {
     }
 
     @Override
-    public boolean isEnabled() {
-        return true;
-    }
+    public boolean isEnabled() {return !this.deleted;}
 }

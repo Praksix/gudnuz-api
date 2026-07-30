@@ -105,6 +105,7 @@ public class PostService {
                 .categorie(post.getCategorie().name())
                 .sparksCount(post.getSparksCount())
                 .pseudo(post.getUser().getPseudo())
+                .avatarUrl(post.getUser().getAvatarUrl())
                 .createdAt(post.getCreatedAt())
                 .isSparked(isSparked)
                 .build();

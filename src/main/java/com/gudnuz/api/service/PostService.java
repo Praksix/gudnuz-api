@@ -6,8 +6,8 @@ import com.gudnuz.api.model.User;
 import com.gudnuz.api.model.enums.Categorie;
 import com.gudnuz.api.exception.BusinessException;
 import com.gudnuz.api.exception.ResourceNotFoundException;
+import com.gudnuz.api.model.enums.PostStatut;
 import com.gudnuz.api.repository.PostRepository;
-import com.gudnuz.api.repository.UserPostSparkRepository;
 import com.gudnuz.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static com.gudnuz.api.model.enums.PostStatut.REMOVED;
+
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -24,8 +26,8 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
-    private final UserPostSparkRepository userPostSparkRepository;
     private final OgImageService ogImageService;
+    private final PostMapper postMapper;
 
 
     public PostResponse createPost(String titre, String contenu, String categorie, String source, MultipartFile image, String email) throws IOException {
@@ -58,7 +60,7 @@ public class PostService {
 
         postRepository.save(post);
 
-        return mapToResponse(post, user);
+        return postMapper.mapToResponse(post, user);
     }
 
 
@@ -68,19 +70,19 @@ public class PostService {
 
         List<Post> posts = (categorie == null || "TOP".equals(categorie))
                 ? postRepository.findTopPostsSince(since)
-                : postRepository.findByCreatedAtAfterAndCategorieOrderByCreatedAtDesc(since, Categorie.valueOf(categorie.toUpperCase()));
+                : postRepository.findByCreatedAtAfterAndCategorieAndStatutNotOrderByCreatedAtDesc(since, Categorie.valueOf(categorie.toUpperCase()), PostStatut.REMOVED);
 
         return posts.stream()
-                .map(post -> mapToResponse(post, user))
+                .map(post -> postMapper.mapToResponse(post, user))
                 .toList();
     }
 
 
     public List<PostResponse> getPostsByUser(UUID userId, String viewerEmail) {
         User viewer = userRepository.findByEmail(viewerEmail).orElseThrow();
-        List<Post> posts = postRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        List<Post> posts = postRepository.findByUserIdAndStatutNotOrderByCreatedAtDesc(userId, PostStatut.REMOVED);
         return posts.stream()
-                .map(post -> mapToResponse(post, viewer))
+                .map(post -> postMapper.mapToResponse(post, viewer))
                 .toList();
     }
 
@@ -93,23 +95,7 @@ public class PostService {
 
 
 
-    private PostResponse mapToResponse(Post post, User user) {
-        boolean isSparked = userPostSparkRepository.existsByUserAndPost(user, post);
-        return PostResponse.builder()
-                .id(post.getId())
-                .userId(post.getUser().getId().toString())
-                .titre(post.getTitre())
-                .contenu(post.getContenu())
-                .source(post.getSource())
-                .imageUrl(post.getImageUrl())
-                .categorie(post.getCategorie().name())
-                .sparksCount(post.getSparksCount())
-                .pseudo(post.getUser().getPseudo())
-                .avatarUrl(post.getUser().getAvatarUrl())
-                .createdAt(post.getCreatedAt())
-                .isSparked(isSparked)
-                .build();
-    }
+
 
 
 

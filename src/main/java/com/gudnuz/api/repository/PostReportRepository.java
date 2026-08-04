@@ -11,4 +11,5 @@ import java.util.UUID;
 @Repository
 public interface PostReportRepository extends JpaRepository<PostReport, UUID> {
     boolean existsByUserAndPost(User user, Post post);
+    void deleteByPost(Post post);
 }

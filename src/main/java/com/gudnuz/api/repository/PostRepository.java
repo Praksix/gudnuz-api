@@ -16,9 +16,9 @@ import java.util.UUID;
 public interface PostRepository extends JpaRepository<Post, UUID> {
 
     //List<Post> findByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime since);
-    List<Post> findByCreatedAtAfterAndCategorieOrderByCreatedAtDesc(LocalDateTime since, Categorie categorie);
+    List<Post> findByCreatedAtAfterAndCategorieAndStatutNotOrderByCreatedAtDesc(LocalDateTime since, Categorie categorie, PostStatut statut);
 
-    List<Post> findByUserIdOrderByCreatedAtDesc(UUID userId);
+    List<Post> findByUserIdAndStatutNotOrderByCreatedAtDesc(UUID userId, PostStatut statut);
 
 
     @Query("SELECT p FROM Post p WHERE p.createdAt > :since AND (p.statut IS NULL OR p.statut != 'REMOVED') ORDER BY p.sparksCount DESC")

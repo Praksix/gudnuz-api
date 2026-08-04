@@ -15,9 +15,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @Configuration      // Indique à Spring que cette classe contient de la configuration
 @EnableWebSecurity  // Active la sécurité web de Spring Security
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 

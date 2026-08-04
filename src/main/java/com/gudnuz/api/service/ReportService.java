@@ -1,6 +1,9 @@
 package com.gudnuz.api.service;
 
+import com.gudnuz.api.dto.request.DeleteAccountRequest;
 import com.gudnuz.api.dto.request.ReportRequest;
+import com.gudnuz.api.exception.InvalidCredentialsException;
+import com.gudnuz.api.exception.ResourceNotFoundException;
 import com.gudnuz.api.model.Post;
 import com.gudnuz.api.model.PostReport;
 import com.gudnuz.api.model.User;
@@ -37,5 +40,9 @@ public class ReportService {
 
         postReportRepository.save(postReport);
     }
+
+
+
+
 
 }

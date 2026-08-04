@@ -14,8 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ReportResponse {
     private UUID id;
-    private UUID postId;
-    private String postTitre;
+    private PostResponse post;
     private String motif;
     private String signalePar;
     private LocalDateTime createdAt;

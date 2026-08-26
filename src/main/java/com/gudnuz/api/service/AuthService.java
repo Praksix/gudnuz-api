@@ -38,6 +38,10 @@ public class AuthService {
             throw new DuplicateResourceException("Email déjà utilisé");
         }
 
+        if (userRepository.existsByPseudo(request.getPseudo())) {
+            throw new DuplicateResourceException("Pseudo déjà utilisé");
+        }
+
         // Construction de l'entité User via le Builder Lombok
         // passwordEncoder.encode() transforme "monMotDePasse" en "$2a$10$xK3jG..." (hash BCrypt)
         User user = User.builder()

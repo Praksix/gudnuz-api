@@ -1,6 +1,6 @@
 package com.gudnuz.api.service;
 
-import com.gudnuz.api.dto.response.PostResponse;
+
 import com.gudnuz.api.dto.response.ReportResponse;
 import com.gudnuz.api.exception.ResourceNotFoundException;
 import com.gudnuz.api.model.Post;

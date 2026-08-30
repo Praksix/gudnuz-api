@@ -16,9 +16,15 @@ import java.util.UUID;
 public interface PostRepository extends JpaRepository<Post, UUID> {
 
     //List<Post> findByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime since);
-    List<Post> findByCreatedAtAfterAndCategorieAndStatutNotOrderByCreatedAtDesc(LocalDateTime since, Categorie categorie, PostStatut statut);
+    // Requête explicite (et pas une méthode dérivée type "...StatutNot...") car "statut <> :statut" en SQL
+    // exclut aussi les lignes où statut IS NULL (logique à 3 valeurs), alors qu'un statut NULL = post normal,
+    // ni élu ni supprimé, qui doit rester dans le feed. Même pattern que findTopPostsSince ci-dessous.
+    @Query("SELECT p FROM Post p WHERE p.createdAt > :since AND p.categorie = :categorie AND (p.statut IS NULL OR p.statut != :statut) ORDER BY p.createdAt DESC")
+    List<Post> findByCreatedAtAfterAndCategorieAndStatutNotOrderByCreatedAtDesc(@Param("since") LocalDateTime since, @Param("categorie") Categorie categorie, @Param("statut") PostStatut statut);
 
-    List<Post> findByUserIdAndStatutNotOrderByCreatedAtDesc(UUID userId, PostStatut statut);
+    // Même souci de logique à 3 valeurs que ci-dessus avec une méthode dérivée "...StatutNot...".
+    @Query("SELECT p FROM Post p WHERE p.user.id = :userId AND (p.statut IS NULL OR p.statut != :statut) ORDER BY p.createdAt DESC")
+    List<Post> findByUserIdAndStatutNotOrderByCreatedAtDesc(@Param("userId") UUID userId, @Param("statut") PostStatut statut);
 
 
     @Query("SELECT p FROM Post p WHERE p.createdAt > :since AND (p.statut IS NULL OR p.statut != 'REMOVED') ORDER BY p.sparksCount DESC")

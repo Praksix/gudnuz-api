@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.4.xsd">
+
+    <suppress>
+        <notes><![CDATA[
+        Faux positif : spring-boot-sql (module officiel Spring Boot, gestion JDBC/SQL) est
+        confondu avec le produit "WWW SQL" (éditeur sans aucun lien avec Spring), uniquement
+        parce que les deux partagent le même numéro de version (4.0.5) par coïncidence.
+        Vu et confirmé le 2026-08-31.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring\-boot\-sql@.*$</packageUrl>
+        <cpe>cpe:2.3:a:www-sql_project:www-sql:4.0.5:*:*:*:*:*:*:*</cpe>
+    </suppress>
+
+    <suppress until="2027-03-01Z">
+        <notes><![CDATA[
+        CVE-2026-40970 à CVE-2026-40977 : faille dans l'auto-configuration SSL de Cassandra
+        (désactivation de la vérification du hostname TLS). GudNuz n'utilise pas Cassandra
+        (aucune dépendance dans le pom.xml, base de données = PostgreSQL uniquement) — le
+        code concerné n'est jamais exécuté par cette application.
+        Aucune version stable de Spring Boot corrigée n'est disponible au 2026-08-31
+        (dernière version stable : 4.0.5 ; seule "4.2.0-M1", une pré-version, existe).
+        Suppression avec date d'expiration : à revoir dès qu'une version stable corrigée
+        sort, ou avant le 1er mars 2027 dans tous les cas.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring\-boot\-(sql|web\-server)@.*$</packageUrl>
+        <cve>CVE-2026-40970</cve>
+        <cve>CVE-2026-40971</cve>
+        <cve>CVE-2026-40972</cve>
+        <cve>CVE-2026-40973</cve>
+        <cve>CVE-2026-40974</cve>
+        <cve>CVE-2026-40975</cve>
+        <cve>CVE-2026-40976</cve>
+        <cve>CVE-2026-40977</cve>
+    </suppress>
+
+</suppressions>

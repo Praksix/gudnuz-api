@@ -28,6 +28,17 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<!--
+		Surcharge des versions gérées par spring-boot-starter-parent (4.0.5, pas de version
+		stable plus récente disponible pour l'instant) pour appliquer deux correctifs de
+		sécurité en attendant une prochaine version de Spring Boot :
+		- CVE-2026-41293 (Tomcat) : validation des en-têtes HTTP/2, CVSS 9.8.
+		- CVE-2026-41855 (Spring Framework) : désérialisation non sûre via JMS/Jackson.
+		  Non exploitable ici (GudNuz n'utilise pas JMS), corrigée quand même car gratuite.
+		Voir dependency-check-suppressions.xml pour les CVE non corrigeables pour l'instant.
+		-->
+		<tomcat.version>11.0.22</tomcat.version>
+		<spring-framework.version>7.0.8</spring-framework.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -169,7 +180,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<!-- Version gérée par spring-boot-starter-parent, pas besoin de la fixer ici -->
+				<version>0.8.15</version>
 				<executions>
 					<execution>
 						<!-- Instrumente la JVM avant les tests pour pouvoir mesurer la couverture -->
@@ -207,6 +218,9 @@
 					<formats>
 						<format>HTML</format>
 					</formats>
+					<suppressionFiles>
+						<suppressionFile>dependency-check-suppressions.xml</suppressionFile>
+					</suppressionFiles>
 				</configuration>
 			</plugin>
 			<plugin>

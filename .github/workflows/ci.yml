@@ -78,7 +78,25 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: maven
+          # Pas de `cache: maven` ici : le step de cache dédié ci-dessous couvre ~/.m2/repository
+          # (dépendances Maven + base CVE NVD), avec une stratégie de clé adaptée à cette dernière.
+
+      # La base CVE du NIST (~/.m2/repository, comme les dépendances Maven classiques) est mise en
+      # cache entre les runs, sinon le téléchargement complet (~385k entrées la première fois) se
+      # répéterait à chaque push. Clé datée à l'heure près : contrairement au cache Maven classique
+      # (clé = hash du pom.xml), la base CVE doit se rafraîchir même quand pom.xml ne change pas.
+      - name: Date pour la clé de cache
+        id: get-date
+        run: echo "datetime=$(date -u '+%Y%m%d%H')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Maven + base CVE (Dependency-Check)
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ steps.get-date.outputs.datetime }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ steps.get-date.outputs.datetime }}
+            ${{ runner.os }}-maven-
 
       # Job séparé de build-and-test : la synchro de la base CVE du NIST peut être lente/rate-limitée
       # sans clé API (voir NVD_API_KEY plus bas), pas de raison de ralentir le retour tests/build pour ça.

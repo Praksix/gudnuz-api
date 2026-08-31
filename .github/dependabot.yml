@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # Dépendances Maven (pom.xml) — Spring Boot, JJWT, jsoup, etc.
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Versions des actions utilisées dans les workflows (actions/checkout, actions/setup-java...)
+  # Évite de retomber sur le genre d'avertissement de dépréciation qu'on a eu sur setup-java@v4.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

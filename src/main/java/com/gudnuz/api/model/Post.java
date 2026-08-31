@@ -24,7 +24,7 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false,  columnDefinition = "TEXT")
     private String contenu;
 
     @Column(nullable = false)

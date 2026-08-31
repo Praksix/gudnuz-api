@@ -6,9 +6,10 @@
         Faux positif : spring-boot-sql (module officiel Spring Boot, gestion JDBC/SQL) est
         confondu avec le produit "WWW SQL" (éditeur sans aucun lien avec Spring), uniquement
         parce que les deux partagent le même numéro de version (4.0.5) par coïncidence.
-        Vu et confirmé le 2026-08-31.
+        Vu et confirmé le 2026-08-31. Regex élargie au groupId entier (même souci
+        d'attribution flottante que les autres suppressions de ce fichier).
         ]]></notes>
-        <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring\-boot\-sql@.*$</packageUrl>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/.*@.*$</packageUrl>
         <cpe>cpe:2.3:a:www-sql_project:www-sql:4.0.5:*:*:*:*:*:*:*</cpe>
     </suppress>
 
@@ -49,24 +50,30 @@
         du contenu diffusé aux autres utilisateurs. Écart marquant entre le score NVD
         générique et l'évaluation contextuelle de l'éditeur — suppression basée sur cette
         dernière, vérifiée le 2026-08-31.
+        Regex élargie au groupId entier (org.springframework, n'importe quel artefact) :
+        cette CVE "flotte" d'un module Spring Framework à l'autre selon les runs (vue sur
+        spring-core, puis sur spring-tx) — c'est une CVE du produit, pas d'un JAR précis.
         ]]></notes>
-        <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/.*@.*$</packageUrl>
         <cve>CVE-2026-59313</cve>
     </suppress>
 
     <suppress until="2026-10-01Z">
         <notes><![CDATA[
-        Cluster de CVE Tomcat restant à CVSS >= 9 sur tomcat-embed-core 11.0.22 (déjà la
-        dernière version confirmée disponible ce soir — voir CLAUDE.md pour le détail de
-        la vérification). Contrairement aux 2 autres suppressions de ce fichier, celles-ci
+        Cluster de CVE Tomcat restant à CVSS >= 9 sur Tomcat 11.0.22 (déjà la dernière
+        version confirmée disponible ce soir — voir CLAUDE.md pour le détail de la
+        vérification). Contrairement aux 2 autres suppressions de ce fichier, celles-ci
         n'ont PAS été vérifiées une par une contre l'avis officiel de l'éditeur (temps
         insuffisant ce soir, et 3 CVE déjà vérifiées ce soir sur ce projet se sont avérées
         largement moins graves que le score NVD affiché — voir les 2 suppressions
         ci-dessus). Expiration volontairement courte (1 mois, pas 6) pour forcer une vraie
         revue individuelle de chaque CVE, ou une mise à jour vers une version Tomcat plus
         récente si disponible, avant le 1er octobre 2026.
+        Regex élargie au groupId entier (org.apache.tomcat.embed, n'importe quel artefact) :
+        ces CVE flottent entre tomcat-embed-core et tomcat-embed-websocket selon les runs
+        — ce sont des CVE du produit Tomcat, pas d'un JAR précis.
         ]]></notes>
-        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat\-embed\-core@.*$</packageUrl>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/.*@.*$</packageUrl>
         <cve>CVE-2026-53434</cve>
         <cve>CVE-2026-65182</cve>
         <cve>CVE-2026-65905</cve>

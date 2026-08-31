@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    # Une vraie base Postgres est nécessaire ici : ApiApplicationTests (@SpringBootTest)
+    # charge tout le contexte Spring, donc une vraie connexion DB au démarrage.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: gudnuz
+          POSTGRES_USER: gudnuz_user
+          POSTGRES_PASSWORD: ci_test_password
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_NAME: gudnuz
+      DB_USERNAME: gudnuz_user
+      DB_PASSWORD: ci_test_password
+      # Clé JWT jetable, utilisée uniquement le temps du run CI — jamais la vraie clé de prod.
+      JWT_SECRET_KEY: yXwqBjsUb7qbAGst+MQiqEAOqW94a5BP3xWevIYxu2Y=
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: maven
+
+      - name: Build + tests
+        run: ./mvnw clean verify

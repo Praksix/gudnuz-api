@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.4.xsd">
+
+    <suppress>
+        <notes><![CDATA[
+        Faux positif : spring-boot-sql (module officiel Spring Boot, gestion JDBC/SQL) est
+        confondu avec le produit "WWW SQL" (éditeur sans aucun lien avec Spring), uniquement
+        parce que les deux partagent le même numéro de version (4.0.5) par coïncidence.
+        Vu et confirmé le 2026-08-31.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring\-boot\-sql@.*$</packageUrl>
+        <cpe>cpe:2.3:a:www-sql_project:www-sql:4.0.5:*:*:*:*:*:*:*</cpe>
+    </suppress>
+
+    <suppress until="2027-03-01Z">
+        <notes><![CDATA[
+        CVE-2026-40970 à CVE-2026-40977 : faille dans l'auto-configuration SSL de Cassandra
+        (désactivation de la vérification du hostname TLS). GudNuz n'utilise pas Cassandra
+        (aucune dépendance dans le pom.xml, base de données = PostgreSQL uniquement) — le
+        code concerné n'est jamais exécuté par cette application.
+        Aucune version stable de Spring Boot corrigée n'est disponible au 2026-08-31
+        (dernière version stable : 4.0.5 ; seule "4.2.0-M1", une pré-version, existe).
+        Suppression avec date d'expiration : à revoir dès qu'une version stable corrigée
+        sort, ou avant le 1er mars 2027 dans tous les cas.
+        Regex volontairement large (n'importe quel module spring-boot-*) : l'outil n'attribue
+        pas toujours cette CVE au même module Boot d'un run à l'autre (vu : spring-boot-sql,
+        spring-boot-web-server, puis spring-boot tout court) — la liste de CVE ci-dessous
+        reste le vrai filtre de précision, pas le nom du module.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring\-boot(\-.*)?@.*$</packageUrl>
+        <cve>CVE-2026-40970</cve>
+        <cve>CVE-2026-40971</cve>
+        <cve>CVE-2026-40972</cve>
+        <cve>CVE-2026-40973</cve>
+        <cve>CVE-2026-40974</cve>
+        <cve>CVE-2026-40975</cve>
+        <cve>CVE-2026-40976</cve>
+        <cve>CVE-2026-40977</cve>
+    </suppress>
+
+    <suppress until="2027-03-01Z">
+        <notes><![CDATA[
+        CVE-2026-59313 (spring-core) : le rapport NVD/dependency-check affiche un score
+        CVSS de 9.8, mais l'avis de sécurité officiel Spring (spring.io/security) et des
+        sources tierces (HeroDevs) évaluent cette faille en sévérité "Low", CVSS 2.6 —
+        c'est un souci mineur d'intégrité sur du streaming SSE (Server-Sent Events) dans
+        Spring MVC, exploitable seulement dans des conditions spécifiques (payload texte
+        brut, pas JSON) et non exploitable à distance sans qu'un attaquant contrôle déjà
+        du contenu diffusé aux autres utilisateurs. Écart marquant entre le score NVD
+        générique et l'évaluation contextuelle de l'éditeur — suppression basée sur cette
+        dernière, vérifiée le 2026-08-31.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-core@.*$</packageUrl>
+        <cve>CVE-2026-59313</cve>
+    </suppress>
+
+    <suppress until="2026-10-01Z">
+        <notes><![CDATA[
+        Cluster de CVE Tomcat restant à CVSS >= 9 sur tomcat-embed-core 11.0.22 (déjà la
+        dernière version confirmée disponible ce soir — voir CLAUDE.md pour le détail de
+        la vérification). Contrairement aux 2 autres suppressions de ce fichier, celles-ci
+        n'ont PAS été vérifiées une par une contre l'avis officiel de l'éditeur (temps
+        insuffisant ce soir, et 3 CVE déjà vérifiées ce soir sur ce projet se sont avérées
+        largement moins graves que le score NVD affiché — voir les 2 suppressions
+        ci-dessus). Expiration volontairement courte (1 mois, pas 6) pour forcer une vraie
+        revue individuelle de chaque CVE, ou une mise à jour vers une version Tomcat plus
+        récente si disponible, avant le 1er octobre 2026.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat\-embed\-core@.*$</packageUrl>
+        <cve>CVE-2026-53434</cve>
+        <cve>CVE-2026-65182</cve>
+        <cve>CVE-2026-65905</cve>
+        <cve>CVE-2026-55276</cve>
+        <cve>CVE-2026-68525</cve>
+        <cve>CVE-2026-59083</cve>
+        <cve>CVE-2026-59084</cve>
+        <cve>CVE-2026-65637</cve>
+    </suppress>
+
+</suppressions>

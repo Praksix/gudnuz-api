@@ -36,10 +36,10 @@ jobs:
 
     steps:
       - name: Checkout du code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configuration Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -47,3 +47,66 @@ jobs:
 
       - name: Build + tests
         run: ./mvnw clean verify
+
+      - name: Upload du rapport de couverture (JaCoCo)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+          retention-days: 30
+
+      # Généré par le même `mvn clean verify` ci-dessus (le plugin est bindé sur la phase verify) —
+      # rapide, pas d'appel réseau, donc pas besoin d'un job séparé contrairement à Dependency-Check.
+      - name: Upload du rapport SpotBugs / Find Security Bugs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-report
+          path: target/spotbugsXml.xml
+          retention-days: 30
+
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v5
+
+      - name: Configuration Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          # Pas de `cache: maven` ici : le step de cache dédié ci-dessous couvre ~/.m2/repository
+          # (dépendances Maven + base CVE NVD), avec une stratégie de clé adaptée à cette dernière.
+
+      # La base CVE du NIST (~/.m2/repository, comme les dépendances Maven classiques) est mise en
+      # cache entre les runs, sinon le téléchargement complet (~385k entrées la première fois) se
+      # répéterait à chaque push. Clé datée à l'heure près : contrairement au cache Maven classique
+      # (clé = hash du pom.xml), la base CVE doit se rafraîchir même quand pom.xml ne change pas.
+      - name: Date pour la clé de cache
+        id: get-date
+        run: echo "datetime=$(date -u '+%Y%m%d%H')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Maven + base CVE (Dependency-Check)
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ steps.get-date.outputs.datetime }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-${{ steps.get-date.outputs.datetime }}
+            ${{ runner.os }}-maven-
+
+      # Job séparé de build-and-test : la synchro de la base CVE du NIST peut être lente/rate-limitée
+      # sans clé API (voir NVD_API_KEY plus bas), pas de raison de ralentir le retour tests/build pour ça.
+      - name: Analyse des dépendances (OWASP Dependency-Check)
+        run: ./mvnw org.owasp:dependency-check-maven:check -DnvdApiKey=${{ secrets.NVD_API_KEY }}
+
+      - name: Upload du rapport Dependency-Check
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: target/dependency-check-report.html
+          retention-days: 30

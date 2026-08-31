@@ -28,14 +28,17 @@ public class PostController {
 
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<PostResponse> createPost(
-            @RequestParam String titre,
-            @RequestParam String contenu,
-            @RequestParam String categorie,
-            @RequestParam(required = false) String source,
+            @Valid @ModelAttribute CreatePostRequest request,
             @RequestParam(required = false) MultipartFile image,
             @AuthenticationPrincipal UserDetails userDetails
     ) throws IOException {
-        return ResponseEntity.ok(postService.createPost(titre, contenu, categorie, source, image, userDetails.getUsername()));
+        return ResponseEntity.ok(postService.createPost(
+                request.getTitre(),
+                request.getContenu(),
+                request.getCategorie(),
+                request.getSource(),
+                image,
+                userDetails.getUsername()));
     }
 
 

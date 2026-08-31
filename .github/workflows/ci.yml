@@ -55,3 +55,40 @@ jobs:
           name: jacoco-report
           path: target/site/jacoco/
           retention-days: 30
+
+      # Généré par le même `mvn clean verify` ci-dessus (le plugin est bindé sur la phase verify) —
+      # rapide, pas d'appel réseau, donc pas besoin d'un job séparé contrairement à Dependency-Check.
+      - name: Upload du rapport SpotBugs / Find Security Bugs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-report
+          path: target/spotbugsXml.xml
+          retention-days: 30
+
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v5
+
+      - name: Configuration Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: maven
+
+      # Job séparé de build-and-test : la synchro de la base CVE du NIST peut être lente/rate-limitée
+      # sans clé API (voir NVD_API_KEY plus bas), pas de raison de ralentir le retour tests/build pour ça.
+      - name: Analyse des dépendances (OWASP Dependency-Check)
+        run: ./mvnw org.owasp:dependency-check-maven:check -DnvdApiKey=${{ secrets.NVD_API_KEY }}
+
+      - name: Upload du rapport Dependency-Check
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: target/dependency-check-report.html
+          retention-days: 30

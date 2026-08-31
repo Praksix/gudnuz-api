@@ -188,6 +188,58 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<!--
+				OWASP Dependency-Check : scanne les dépendances (pom.xml) contre la base CVE du NIST.
+				Volontairement PAS bindé à une phase du cycle de vie (pas d'<executions> ici) : la synchro
+				de la base CVE peut être lente/rate-limitée sans clé API, donc on ne veut pas ralentir
+				un simple `mvn verify` en local. Invoqué explicitement en CI via
+				`./mvnw org.owasp:dependency-check-maven:check`.
+				Seuil de blocage volontairement haut (CVSS >= 9, "Critique" uniquement) pour ce premier
+				passage : on n'a jamais vu de rapport, pas de raison de bloquer le pipeline sur des CVE
+				moyennes tant qu'on ne les a pas triées à la main.
+				-->
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>13.0.0</version>
+				<configuration>
+					<failBuildOnCVSS>9</failBuildOnCVSS>
+					<formats>
+						<format>HTML</format>
+					</formats>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!--
+				SpotBugs + Find Security Bugs : analyse statique du bytecode compilé (pas des dépendances,
+				notre propre code). Goal "spotbugs" (rapport) et non "check" (bloquant) pour ce premier
+				passage, même logique que ci-dessus : on veut d'abord voir ce qui remonte avant de décider
+				quoi bloquer. Bindé sur "verify" car rapide (pas d'appel réseau), contrairement à
+				dependency-check.
+				-->
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>4.10.4.0</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>Medium</threshold>
+					<plugins>
+						<plugin>
+							<groupId>com.h3xstream.findsecbugs</groupId>
+							<artifactId>findsecbugs-plugin</artifactId>
+							<version>1.14.0</version>
+						</plugin>
+					</plugins>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>verify</phase>
+						<goals>
+							<goal>spotbugs</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

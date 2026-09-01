@@ -6,6 +6,9 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    # Sans ça, Dependabot cible la branche par défaut du repo (main) — pas develop, qui est
+    # notre branche de travail habituelle (flux develop -> PR -> main).
+    target-branch: "develop"
 
   # Versions des actions utilisées dans les workflows (actions/checkout, actions/setup-java...)
   # Évite de retomber sur le genre d'avertissement de dépréciation qu'on a eu sur setup-java@v4.
@@ -13,3 +16,4 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    target-branch: "develop"

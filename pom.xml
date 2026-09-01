@@ -38,7 +38,9 @@
 		Voir dependency-check-suppressions.xml pour les CVE non corrigeables pour l'instant.
 		-->
 		<tomcat.version>11.0.22</tomcat.version>
-		<spring-framework.version>7.0.8</spring-framework.version>
+		<!-- 7.0.9 corrige aussi CVE-2026-59283 (SpEL, non exploitable ici de toute façon : pas
+		     d'usage de SpelExpressionParser/SimpleEvaluationContext, compiler mode jamais activé) -->
+		<spring-framework.version>7.0.9</spring-framework.version>
 	</properties>
 	<dependencies>
 		<dependency>

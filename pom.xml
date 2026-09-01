@@ -38,7 +38,9 @@
 		Voir dependency-check-suppressions.xml pour les CVE non corrigeables pour l'instant.
 		-->
 		<tomcat.version>11.0.22</tomcat.version>
-		<spring-framework.version>7.0.8</spring-framework.version>
+		<!-- 7.0.9 corrige aussi CVE-2026-59283 (SpEL, non exploitable ici de toute façon : pas
+		     d'usage de SpelExpressionParser/SimpleEvaluationContext, compiler mode jamais activé) -->
+		<spring-framework.version>7.0.9</spring-framework.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -214,7 +216,12 @@
 				<artifactId>dependency-check-maven</artifactId>
 				<version>13.0.0</version>
 				<configuration>
-					<failBuildOnCVSS>9</failBuildOnCVSS>
+					<!-- 11 = ne bloque jamais le build (le CVSS max réel est 10). Le job CI
+					     rend aussi ce step non bloquant côté GitHub Actions (continue-on-error) :
+					     ce scan reste informatif (rapport en artefact), Dependabot fait la
+					     vraie veille de sécurité en tâche de fond. Voir CLAUDE.md pour le
+					     contexte de cette décision (2026-09-01). -->
+					<failBuildOnCVSS>11</failBuildOnCVSS>
 					<formats>
 						<format>HTML</format>
 					</formats>

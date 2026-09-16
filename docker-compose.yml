@@ -1,97 +1,40 @@
-# Ancienne syntaxe de version, ignorée par les versions récentes de Docker Compose
-# Tu peux la supprimer sans impact (Docker l'avertit mais continue)
-version: '3.8'
-
-# Déclare l'ensemble des containers (appelés "services") à lancer
 services:
 
-  # ╔══════════════════════════════════════════════════════════════╗
-  # ║                    SERVICE : db                             ║
-  # ║  Container PostgreSQL — la base de données                  ║
-  # ╚══════════════════════════════════════════════════════════════╝
   db:
-    # Utilise l'image officielle PostgreSQL version 16 depuis Docker Hub
-    # Pas de build local : Docker la télécharge si elle n'est pas déjà en cache
     image: postgres:16
-
-    # Nom du container tel qu'il apparaît dans `docker ps`
-    # Sans ça, Docker génère un nom aléatoire (ex: gudnuz-api-db-1)
     container_name: gudnuz-db
-
-    # Variables d'environnement lues par PostgreSQL au premier démarrage
-    # Elles configurent automatiquement la base, l'utilisateur et le mot de passe
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-
-    # Mapping de ports — format "hôte:container"
-    # PostgreSQL écoute toujours sur 5432 à l'intérieur du container
-    # On expose sur 5433 côté machine hôte car le port 5432 est déjà occupé (PostgreSQL natif)
-    # Utilisation depuis ta machine : localhost:5433
-    ports:
-      - "5433:5432"
-
-    # Monte un volume nommé pour persister les données PostgreSQL
-    # Sans ça, toutes les données sont perdues à chaque `docker compose down`
-    # "/var/lib/postgresql/data" = répertoire où PG stocke ses fichiers en interne
     volumes:
       - gudnuz-data:/var/lib/postgresql/data
-
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U gudnuz_user -d gudnuz" ]
       interval: 5s
       timeout: 3s
       retries: 5
 
-
-  # ╔══════════════════════════════════════════════════════════════╗
-  # ║                    SERVICE : api                            ║
-  # ║  Container Spring Boot — l'API Java                         ║
-  # ╚══════════════════════════════════════════════════════════════╝
   api:
-    # Construit l'image depuis le Dockerfile situé dans le répertoire courant (".")
-    # Docker exécutera les deux étapes du Dockerfile (build Maven + image JRE)
     build: .
-
-    # Nom du container tel qu'il apparaît dans `docker ps`
     container_name: gudnuz-api
-
-    # Mapping de ports — l'API écoute sur 8080 en interne, exposée sur 8080 côté hôte
-    # Accès depuis ta machine : http://localhost:8080
+    restart: unless-stopped
     ports:
       - "8080:8080"
-
-    # Démarre le service "db" avant de démarrer "api"
-    # Attention : garantit uniquement l'ordre de démarrage, pas que PostgreSQL soit prêt
-    # (Spring Boot a un mécanisme de retry intégré pour gérer ça)
     depends_on:
       db:
         condition: service_healthy
-
     volumes:
       - gudnuz-uploads:/app/uploads
-
-    # Variables d'environnement injectées dans le container Spring Boot
-    # Elles surchargent les valeurs de application.yml au moment du démarrage
     environment:
-      # "db" = nom du service Docker ci-dessus — Docker résout ce nom en IP interne automatiquement
-      # Le port ici est 5432 (port interne du container db), pas 5433 (port hôte)
-      # Les deux containers communiquent via le réseau interne Docker, sans passer par ta machine
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       APPLICATION_SECURITY_JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       APPLICATION_SECURITY_JWT_EXPIRATION: ${JWT_EXPIRATION}
-      # Doit correspondre au point de montage du volume gudnuz-uploads ci-dessous
       UPLOAD_DIR: /app/uploads
 
-# ╔══════════════════════════════════════════════════════════════╗
-# ║                       VOLUMES                               ║
-# ╚══════════════════════════════════════════════════════════════╝
-# Déclare les volumes nommés utilisés par les services
-# Docker les crée et les gère dans /var/lib/docker/volumes/ sur ta machine
-# Ces données survivent aux `docker compose down` (supprimés seulement avec `docker compose down -v`)
 volumes:
   gudnuz-data:
   gudnuz-uploads:

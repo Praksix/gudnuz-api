@@ -171,5 +171,6 @@ jobs:
             cd ~/gudnuz-api
             git pull
             docker compose pull
-            docker compose up -d --build
+            docker compose up -d
+            docker compose restart nginx
             docker image prune -f

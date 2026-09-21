@@ -138,7 +138,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configuration de Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Extraction des métadonnées (tags, labels)
         id: meta

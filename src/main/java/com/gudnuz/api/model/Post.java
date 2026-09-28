@@ -44,6 +44,9 @@ public class Post {
     @Column
     private PostStatut statut;
 
+    @Column
+    private LocalDateTime electedAt;
+
     @Builder.Default
     @Column(nullable = false)
     private int sparksCount = 0;

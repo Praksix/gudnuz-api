@@ -23,6 +23,7 @@ public class PostResponse {
     private String categorie;
     private int sparksCount;
     private boolean isSparked;
+    private boolean elected;
     private String pseudo;
     private String avatarUrl;
     private LocalDateTime createdAt;

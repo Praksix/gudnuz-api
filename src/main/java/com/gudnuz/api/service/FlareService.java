@@ -2,8 +2,10 @@ package com.gudnuz.api.service;
 
 import com.gudnuz.api.dto.response.PostResponse;
 import com.gudnuz.api.model.Post;
+import com.gudnuz.api.model.User;
 import com.gudnuz.api.model.enums.PostStatut;
 import com.gudnuz.api.repository.PostRepository;
+import com.gudnuz.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,46 +17,36 @@ import java.util.List;
 public class FlareService {
 
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
+    private final PostMapper postMapper;
 
     public void electFlare(){
         LocalDateTime since = LocalDateTime.now().minusHours(24);
-        List<Post> posts = postRepository.findTopPostsSince(since);
+        List<Post> posts = postRepository.findNextEligiblePost(since);
         if (posts.isEmpty()){
             return;
         }else {
             Post flare = posts.get(0);
             flare.setStatut(PostStatut.ELECTED);
+            flare.setElectedAt(LocalDateTime.now());
             postRepository.save(flare);
         }
     }
 
-    public List<PostResponse> getGudBox() {
-        List<Post> posts = postRepository.findByStatutOrderByCreatedAtDesc(PostStatut.ELECTED);
+    public List<PostResponse> getGudBox(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow();
+        List<Post> posts = postRepository.findByStatutOrderByElectedAtDesc(PostStatut.ELECTED);
 
         return posts.stream()
-                .map(post -> PostResponse.builder()
-                        .id(post.getId())
-                        .titre(post.getTitre())
-                        .contenu(post.getContenu())
-                        .source(post.getSource())
-                        .imageUrl(post.getImageUrl())
-                        .categorie(post.getCategorie().name())
-                        .sparksCount(post.getSparksCount())
-                        .pseudo(post.getUser().getPseudo())
-                        .createdAt(post.getCreatedAt())
-                        .build())
+                .map(post -> postMapper.mapToResponse(post, user))
                 .toList();
     }
 
-    public PostResponse getCurrentFlare() {
-        List<PostResponse> gudBox = getGudBox();
-
-        if (gudBox.isEmpty()) {
-            return null;
-        }
-
-        return gudBox.get(0);
+    public PostResponse getCurrentFlare(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow();
+        return postRepository.findFirstByStatutOrderByElectedAtDesc(PostStatut.ELECTED)
+                .map(post -> postMapper.mapToResponse(post, user))
+                .orElse(null);
     }
-
 
 }

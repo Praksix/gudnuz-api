@@ -66,56 +66,9 @@ jobs:
           path: target/spotbugsXml.xml
           retention-days: 30
 
-  security-scan:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout du code
-        uses: actions/checkout@v5
-
-      - name: Configuration Java 21
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          # Pas de `cache: maven` ici : le step de cache dédié ci-dessous couvre ~/.m2/repository
-          # (dépendances Maven + base CVE NVD), avec une stratégie de clé adaptée à cette dernière.
-
-      # La base CVE du NIST (~/.m2/repository, comme les dépendances Maven classiques) est mise en
-      # cache entre les runs, sinon le téléchargement complet (~385k entrées la première fois) se
-      # répéterait à chaque push. Clé datée à l'heure près : contrairement au cache Maven classique
-      # (clé = hash du pom.xml), la base CVE doit se rafraîchir même quand pom.xml ne change pas.
-      - name: Date pour la clé de cache
-        id: get-date
-        run: echo "datetime=$(date -u '+%Y%m%d%H')" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Maven + base CVE (Dependency-Check)
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ steps.get-date.outputs.datetime }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-${{ steps.get-date.outputs.datetime }}
-            ${{ runner.os }}-maven-
-
-      # Job séparé de build-and-test : la synchro de la base CVE du NIST peut être lente/rate-limitée
-      # sans clé API (voir NVD_API_KEY plus bas), pas de raison de ralentir le retour tests/build pour ça.
-      # continue-on-error : ce scan reste informatif (rapport en artefact) — le NVD a montré ce soir
-      # qu'il pouvait être temporairement indisponible (503) indépendamment de tout ce qu'on contrôle,
-      # et faire échouer toute la CI pour ça n'est pas souhaitable. Dependabot fait la veille de
-      # sécurité continue sur les dépendances, en tâche de fond, sans ce problème de disponibilité.
-      - name: Analyse des dépendances (OWASP Dependency-Check)
-        continue-on-error: true
-        run: ./mvnw org.owasp:dependency-check-maven:check -DnvdApiKey=${{ secrets.NVD_API_KEY }}
-
-      - name: Upload du rapport Dependency-Check
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report
-          path: target/dependency-check-report.html
-          retention-days: 30
-
+  # Le scan de dépendances (OWASP Dependency-Check) n'est plus ici : il a son propre workflow,
+  # .github/workflows/security-scan.yml, avec des déclencheurs adaptés à ce qu'il vérifie
+  # (voir les commentaires en tête de ce fichier).
 
   build-and-push:
     runs-on: ubuntu-latest

@@ -206,11 +206,8 @@
 				OWASP Dependency-Check : scanne les dépendances (pom.xml) contre la base CVE du NIST.
 				Volontairement PAS bindé à une phase du cycle de vie (pas d'<executions> ici) : la synchro
 				de la base CVE peut être lente/rate-limitée sans clé API, donc on ne veut pas ralentir
-				un simple `mvn verify` en local. Invoqué explicitement en CI via
-				`./mvnw org.owasp:dependency-check-maven:check`.
-				Seuil de blocage volontairement haut (CVSS >= 9, "Critique" uniquement) pour ce premier
-				passage : on n'a jamais vu de rapport, pas de raison de bloquer le pipeline sur des CVE
-				moyennes tant qu'on ne les a pas triées à la main.
+				un simple `mvn verify` en local. Invoqué explicitement par le workflow dédié
+				`.github/workflows/security-scan.yml` via `./mvnw org.owasp:dependency-check-maven:check`.
 				-->
 				<groupId>org.owasp</groupId>
 				<artifactId>dependency-check-maven</artifactId>
@@ -228,6 +225,43 @@
 					<suppressionFiles>
 						<suppressionFile>dependency-check-suppressions.xml</suppressionFile>
 					</suppressionFiles>
+
+					<!-- Emplacement de la base CVE locale (base H2, plusieurs centaines de Mo).
+					     Par défaut, le plugin la range DANS ~/.m2/repository, mélangée aux dépendances
+					     Maven : impossible alors de la mettre en cache séparément en CI. En la sortant
+					     dans son propre dossier, security-scan.yml peut lui donner un cache dédié, avec
+					     une clé adaptée à son rythme de mise à jour (au jour), indépendant du pom.xml. -->
+					<dataDirectory>${user.home}/.dependency-check-data</dataDirectory>
+
+					<!-- Analyseurs désactivés : chacun sert un autre écosystème que Java/Maven (ou
+					     n'apporte rien dans un projet Maven), mais s'exécute quand même par défaut,
+					     et certains font des appels réseau à chaque run. Les désactiver ne réduit pas
+					     la détection sur NOS dépendances : c'est l'analyseur de JAR + la base NVD qui
+					     font le vrai travail ici, et ils restent actifs. -->
+
+					<!-- JavaScript : aucun package.json / fichier .js dans ce projet. Retire.js
+					     télécharge en plus sa propre base de vulnérabilités à chaque run. -->
+					<nodeAnalyzerEnabled>false</nodeAnalyzerEnabled>
+					<nodeAuditAnalyzerEnabled>false</nodeAuditAnalyzerEnabled>
+					<yarnAuditAnalyzerEnabled>false</yarnAuditAnalyzerEnabled>
+					<pnpmAuditAnalyzerEnabled>false</pnpmAuditAnalyzerEnabled>
+					<retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
+
+					<!-- .NET : aucun fichier .dll / .nuspec / projet MSBuild ici. -->
+					<assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+					<nuspecAnalyzerEnabled>false</nuspecAnalyzerEnabled>
+					<nugetconfAnalyzerEnabled>false</nugetconfAnalyzerEnabled>
+					<msbuildAnalyzerEnabled>false</msbuildAnalyzerEnabled>
+
+					<!-- OSS Index (Sonatype) : exige désormais un compte + identifiants. Sans eux,
+					     il tente quand même des appels réseau qui échouent, pour rien. -->
+					<ossIndexAnalyzerEnabled>false</ossIndexAnalyzerEnabled>
+
+					<!-- Central Analyzer : interroge Maven Central pour chaque JAR afin de deviner
+					     son groupId:artifactId:version. Inutile ici : dans un projet Maven, le plugin
+					     connaît déjà ces coordonnées exactes grâce au pom.xml. Un appel réseau (et un
+					     risque de rate-limiting) par dépendance en moins. -->
+					<centralAnalyzerEnabled>false</centralAnalyzerEnabled>
 				</configuration>
 			</plugin>
 			<plugin>

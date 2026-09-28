@@ -1,0 +1,109 @@
+name: Security scan (dépendances)
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+# Pourquoi un workflow séparé de ci.yml ?
+#
+# Dans GitHub Actions, les déclencheurs (`on:`) sont définis pour un WORKFLOW entier, pas pour
+# un job. Tant que ce scan était un job de ci.yml, il tournait donc à chaque push sur develop,
+# à chaque PR, et à chaque merge sur main — soit ~3 fois pour une même feature.
+#
+# Or ce scan ne regarde QUE les dépendances (pom.xml), jamais notre code Java. Son résultat ne
+# peut changer que dans deux cas :
+#   1. une dépendance change (pom.xml modifié)  → déclencheurs `push` / `pull_request` + `paths`
+#   2. une nouvelle CVE est publiée par le NIST → déclencheur `schedule` (une fois par semaine)
+# Modifier SparkService.java ne change rien au résultat : inutile de relancer le scan.
+#
+# Bonus : le scan planifié détecte les CVE publiées alors que le code ne bouge pas — ce que le
+# scan "à chaque push" ne faisait pas (s'il n'y a pas de push pendant 3 semaines, aucun scan).
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+on:
+  # Scan hebdomadaire : chaque lundi à 6h UTC. Syntaxe cron : minute heure jour-du-mois mois jour-de-la-semaine
+  # (1 = lundi). ⚠️ GitHub n'exécute les `schedule` que sur la branche par défaut (main).
+  schedule:
+    - cron: '0 6 * * 1'
+
+  # Ajoute un bouton "Run workflow" dans l'onglet Actions de GitHub, pour lancer un scan à la main
+  # (par exemple après avoir retravaillé dependency-check-suppressions.xml).
+  workflow_dispatch:
+
+  # Sur push / PR, UNIQUEMENT si un des fichiers ci-dessous a changé. Si un commit ne touche aucun
+  # de ces chemins, ce workflow n'est même pas démarré.
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'pom.xml'                                  # une dépendance ajoutée / mise à jour
+      - 'dependency-check-suppressions.xml'        # une suppression ajoutée / expirée
+      - '.github/workflows/security-scan.yml'      # ce fichier lui-même (pour tester ses modifs)
+  pull_request:
+    branches: [ main ]
+    # Couvre notamment les PR ouvertes par Dependabot, qui modifient toujours pom.xml.
+    paths:
+      - 'pom.xml'
+      - 'dependency-check-suppressions.xml'
+      - '.github/workflows/security-scan.yml'
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v5
+
+      # `cache: maven` = cache standard des dépendances Maven (~/.m2/repository), avec une clé
+      # basée sur le hash du pom.xml : il n'est ré-uploadé que quand les dépendances changent.
+      # C'est le même mécanisme que dans le job build-and-test de ci.yml.
+      - name: Configuration Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: maven
+
+      # ── Cache dédié à la base CVE ────────────────────────────────────────────────────────────
+      # AVANT : un seul cache pour TOUT ~/.m2/repository (dépendances + base CVE, > 1 Go), avec
+      # une clé qui changeait toutes les heures. Conséquences :
+      #   - presque chaque run créait une nouvelle entrée de cache → upload complet (> 1 Go) en fin
+      #     de job, plusieurs minutes perdues à chaque fois ;
+      #   - GitHub limite le cache à 10 Go par repo et supprime les plus anciennes entrées : avec
+      #     des entrées de > 1 Go créées toutes les heures, le cache était vite évincé → le run
+      #     suivant retéléchargeait TOUTE la base NVD (15-30 min).
+      #
+      # MAINTENANT : la base CVE vit dans son propre dossier (<dataDirectory> dans le pom.xml), et
+      # a son propre cache, avec une clé au JOUR près :
+      #   - au plus une nouvelle entrée par jour (et le scan ne tourne plus que rarement, cf. `on:`) ;
+      #   - `restore-keys` permet de repartir de la base la plus récente disponible (ex : celle de
+      #     la semaine dernière) → le plugin ne télécharge alors QUE les CVE publiées depuis
+      #     (mise à jour incrémentale, quelques secondes/minutes au lieu d'un téléchargement complet).
+      - name: Date du jour (clé du cache de la base CVE)
+        id: get-date
+        run: echo "date=$(date -u '+%Y%m%d')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache de la base CVE (Dependency-Check)
+        uses: actions/cache@v4
+        with:
+          # Doit correspondre exactement au <dataDirectory> du pom.xml.
+          path: ~/.dependency-check-data
+          # Clé exacte : base CVE du jour. Si elle existe déjà (2e run de la journée), restauration
+          # directe, et pas de ré-upload en fin de job (une clé de cache existante est immuable).
+          key: ${{ runner.os }}-dependency-check-data-${{ steps.get-date.outputs.date }}
+          # Sinon : on prend la plus récente des bases précédentes (préfixe commun), puis le plugin
+          # la met à jour de façon incrémentale.
+          restore-keys: |
+            ${{ runner.os }}-dependency-check-data-
+
+      # continue-on-error : ce scan reste informatif (rapport en artefact) — le NVD peut être
+      # temporairement indisponible (503) indépendamment de tout ce qu'on contrôle, et Dependabot
+      # fait la veille de sécurité continue en tâche de fond. Voir CLAUDE.md (décision 2026-09-01).
+      # Sans NVD_API_KEY, l'API du NIST limite fortement le débit : la clé reste indispensable.
+      - name: Analyse des dépendances (OWASP Dependency-Check)
+        continue-on-error: true
+        run: ./mvnw org.owasp:dependency-check-maven:check -DnvdApiKey=${{ secrets.NVD_API_KEY }}
+
+      - name: Upload du rapport Dependency-Check
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: target/dependency-check-report.html
+          retention-days: 30

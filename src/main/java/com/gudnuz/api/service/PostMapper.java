@@ -4,6 +4,7 @@ import com.gudnuz.api.repository.UserPostSparkRepository;
 import com.gudnuz.api.dto.response.PostResponse;
 import com.gudnuz.api.model.Post;
 import com.gudnuz.api.model.User;
+import com.gudnuz.api.model.enums.PostStatut;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +31,7 @@ public class PostMapper {
                 .avatarUrl(post.getUser().getAvatarUrl())
                 .createdAt(post.getCreatedAt())
                 .isSparked(isSparked)
+                .elected(post.getStatut() == PostStatut.ELECTED)
                 .build();
     }
 }

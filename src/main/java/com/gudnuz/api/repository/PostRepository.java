@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -30,7 +31,24 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Query("SELECT p FROM Post p WHERE p.createdAt > :since AND (p.statut IS NULL OR p.statut != 'REMOVED') ORDER BY p.sparksCount DESC")
     List<Post> findTopPostsSince(@Param("since") LocalDateTime since);
 
-    List<Post> findByStatutOrderByCreatedAtDesc(PostStatut statut);
+    // NULLS LAST explicite (même remarque que ci-dessus, mais sur l'ordre plutôt que le filtre) :
+    // sans ça, Postgres trie les NULL en premier sur un ORDER BY ... DESC, donc un post ELECTED
+    // dont electedAt est encore null (élu avant l'ajout de ce champ) remonterait en tête devant
+    // un post réellement élu plus récemment.
+    @Query("SELECT p FROM Post p WHERE p.statut = :statut ORDER BY p.electedAt DESC NULLS LAST")
+    List<Post> findByStatutOrderByElectedAtDesc(@Param("statut") PostStatut statut);
+
+    @Query("SELECT p FROM Post p WHERE p.statut = :statut ORDER BY p.electedAt DESC NULLS LAST")
+    Optional<Post> findFirstByStatutOrderByElectedAtDesc(@Param("statut") PostStatut statut);
+
+
+
+    // Dédiée à l'élection : contrairement à findTopPostsSince (feed "TOP", qui garde les posts déjà
+    // ELECTED), on exclut ici tout post déjà élu pour ne jamais réélire le même deux fois de suite.
+    @Query("SELECT p FROM Post p WHERE p.createdAt > :since AND p.statut IS NULL ORDER BY p.sparksCount DESC")
+    List<Post> findNextEligiblePost(@Param("since") LocalDateTime since);
+
+
 
     int countByUserId(UUID userId);
 

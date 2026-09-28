@@ -20,6 +20,7 @@ public class SparkService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final UserPostSparkRepository userPostSparkRepository;
+    private final PostMapper postMapper;
 
 
     @Transactional
@@ -45,25 +46,8 @@ public class SparkService {
 
         postRepository.save(post);
 
-        // On renvoie le post mis à jour
-        return PostResponse.builder()
-                .id(post.getId())
-                .titre(post.getTitre())
-                .contenu(post.getContenu())
-                .source(post.getSource())
-                .imageUrl(post.getImageUrl())
-                .categorie(post.getCategorie().name())
-                .sparksCount(post.getSparksCount())
-                .pseudo(post.getUser().getPseudo())
-                .createdAt(post.getCreatedAt())
-                .isSparked(!wasSparked)
-                .build();
-
-
-
-
-
-
+        // On renvoie le post mis à jour, via le mapper partagé (mêmes champs que partout ailleurs)
+        return postMapper.mapToResponse(post, user);
     }
 
 

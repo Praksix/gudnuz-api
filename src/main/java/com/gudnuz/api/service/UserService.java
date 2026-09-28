@@ -3,6 +3,7 @@ package com.gudnuz.api.service;
 import com.gudnuz.api.dto.request.DeleteAccountRequest;
 import com.gudnuz.api.dto.request.UpdateProfileRequest;
 import com.gudnuz.api.dto.response.PostResponse;
+import com.gudnuz.api.dto.response.TopUserResponse;
 import com.gudnuz.api.dto.response.UserResponse;
 import com.gudnuz.api.exception.InvalidCredentialsException;
 import com.gudnuz.api.exception.ResourceNotFoundException;
@@ -12,6 +13,7 @@ import com.gudnuz.api.repository.PostRepository;
 import com.gudnuz.api.repository.UserPostSparkRepository;
 import com.gudnuz.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -67,6 +69,11 @@ public class UserService {
                 .flaresCount(postRepository.countByUserIdAndStatut(userId,PostStatut.ELECTED))
                 .build();
 
+    }
+
+
+    public List<TopUserResponse> getTopUsers() {
+        return userPostSparkRepository.findTopUsers(PageRequest.of(0, 10));
     }
 
 

@@ -3,6 +3,7 @@ package com.gudnuz.api.controller;
 import com.gudnuz.api.dto.request.DeleteAccountRequest;
 import com.gudnuz.api.dto.request.UpdateProfileRequest;
 import com.gudnuz.api.dto.response.PostResponse;
+import com.gudnuz.api.dto.response.TopUserResponse;
 import com.gudnuz.api.dto.response.UserResponse;
 import com.gudnuz.api.service.UserService;
 import jakarta.validation.Valid;
@@ -55,6 +56,12 @@ public class UserController {
             @Valid @RequestBody DeleteAccountRequest request) {
         userService.deleteAccount(userDetails.getUsername(), request);
         return ResponseEntity.ok().build();
+    }
+
+
+    @GetMapping("/top")
+    public ResponseEntity<List<TopUserResponse>> getTopUsers() {
+        return ResponseEntity.ok(userService.getTopUsers());
     }
 
 

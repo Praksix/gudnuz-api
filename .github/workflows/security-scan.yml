@@ -54,7 +54,7 @@ jobs:
       # basée sur le hash du pom.xml : il n'est ré-uploadé que quand les dépendances changent.
       # C'est le même mécanisme que dans le job build-and-test de ci.yml.
       - name: Configuration Java 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '21'

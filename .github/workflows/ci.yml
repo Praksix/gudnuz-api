@@ -121,6 +121,9 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           script: |
+            # Arrête le script (et fait échouer le job) à la première commande en erreur :
+            # sans ça, un git pull cassé (token expiré) passait inaperçu à chaque déploiement
+            set -e
             cd ~/gudnuz-api
             git pull
             docker compose pull

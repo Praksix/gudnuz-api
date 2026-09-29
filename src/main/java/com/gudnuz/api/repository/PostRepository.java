@@ -38,7 +38,9 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Query("SELECT p FROM Post p WHERE p.statut = :statut ORDER BY p.electedAt DESC NULLS LAST")
     List<Post> findByStatutOrderByElectedAtDesc(@Param("statut") PostStatut statut);
 
-    @Query("SELECT p FROM Post p WHERE p.statut = :statut ORDER BY p.electedAt DESC NULLS LAST")
+    // LIMIT 1 obligatoire : avec un @Query, Spring Data ignore le nom de la méthode,
+    // donc le "First" de findFirstBy... ne limite plus rien (→ plusieurs résultats pour un Optional → 500)
+    @Query("SELECT p FROM Post p WHERE p.statut = :statut ORDER BY p.electedAt DESC NULLS LAST LIMIT 1")
     Optional<Post> findFirstByStatutOrderByElectedAtDesc(@Param("statut") PostStatut statut);
 
 

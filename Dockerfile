@@ -32,6 +32,10 @@ COPY --from=build /app/target/*.jar app.jar
 # Le fichier appartient désormais à l'utilisateur "spring", pas à root
 RUN chown spring:spring app.jar
 
+# Dossier des images uploadées : créé ici (encore en root) et donné à "spring",
+# sinon l'appli n'a pas le droit d'y écrire une fois passée en USER spring
+RUN mkdir -p /app/uploads && chown spring:spring /app/uploads
+
 # À partir d'ici, tout s'exécute avec l'identité "spring" — plus jamais root
 USER spring
 

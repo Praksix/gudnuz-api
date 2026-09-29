@@ -3,6 +3,7 @@ target/
 
 ### Secrets — ne jamais committer ###
 .env
+firebase-service-account.json
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

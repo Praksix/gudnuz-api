@@ -23,3 +23,6 @@ application:
 
 app:
   upload-dir: ${UPLOAD_DIR:uploads}
+  firebase:
+    # Vide par défaut : notifications désactivées (dev local, tests, CI)
+    credentials-path: ${FIREBASE_CREDENTIALS_PATH:}

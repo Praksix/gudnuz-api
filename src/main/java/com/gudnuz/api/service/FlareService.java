@@ -19,6 +19,7 @@ public class FlareService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final PostMapper postMapper;
+    private final NotificationService notificationService;
 
     public void electFlare(){
         LocalDateTime since = LocalDateTime.now().minusHours(24);
@@ -30,6 +31,7 @@ public class FlareService {
             flare.setStatut(PostStatut.ELECTED);
             flare.setElectedAt(LocalDateTime.now());
             postRepository.save(flare);
+            notificationService.notifyNewFlare(flare);
         }
     }
 

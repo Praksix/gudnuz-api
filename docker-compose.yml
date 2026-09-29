@@ -27,6 +27,8 @@ services:
         condition: service_healthy
     volumes:
       - gudnuz-uploads:/app/uploads
+      # Clé du compte de service Firebase, déposée à la main sur le VPS (jamais dans git)
+      - ./firebase-service-account.json:/app/firebase-service-account.json:ro
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
@@ -34,6 +36,7 @@ services:
       APPLICATION_SECURITY_JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       APPLICATION_SECURITY_JWT_EXPIRATION: ${JWT_EXPIRATION}
       UPLOAD_DIR: /app/uploads
+      FIREBASE_CREDENTIALS_PATH: /app/firebase-service-account.json
 
   nginx:
     image: nginx:alpine

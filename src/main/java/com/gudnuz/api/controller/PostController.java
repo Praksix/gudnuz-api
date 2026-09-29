@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -51,6 +52,12 @@ public class PostController {
     @GetMapping("/me")
     public ResponseEntity<List<PostResponse>> getMyPosts(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(postService.getMyPosts(userDetails.getUsername()));
+    }
+
+    // Spring privilégie le chemin littéral "/me" sur la variable "/{id}", pas de conflit
+    @GetMapping("/{id}")
+    public ResponseEntity<PostResponse> getPostById(@PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(postService.getPostById(id, userDetails.getUsername()));
     }
 
 }

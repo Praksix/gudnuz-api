@@ -93,6 +93,16 @@ public class PostService {
     }
 
 
+    // Utilisé à l'ouverture d'une notification Flare (l'app ne reçoit que le postId)
+    public PostResponse getPostById(UUID postId, String email) {
+        User viewer = userRepository.findByEmail(email).orElseThrow();
+        Post post = postRepository.findById(postId)
+                .filter(p -> p.getStatut() != REMOVED)
+                .orElseThrow(() -> new ResourceNotFoundException("Post introuvable"));
+        return postMapper.mapToResponse(post, viewer);
+    }
+
+
 
 
 

@@ -73,9 +73,12 @@ public class GlobalExceptionHandler {
     }
 
 
+    // Mot de passe actuel incorrect (changement de mdp, suppression de compte) → 400.
+    // Pas 401 : l'utilisateur EST authentifié (JWT valide), c'est la valeur saisie qui est fausse.
+    // Un 401 ici ferait croire au front que le token est expiré → déconnexion à tort.
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", ex.getMessage()));
     }
 

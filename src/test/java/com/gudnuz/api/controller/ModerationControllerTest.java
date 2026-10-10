@@ -76,6 +76,14 @@ public class ModerationControllerTest {
     }
 
     @Test
+    void getAllReports_refuseNoUser() throws Exception {
+
+        mockMvc.perform(get("/api/moderation/reports"))
+                .andExpect(status().is(401));
+
+    }
+
+    @Test
     @WithMockUser(roles = "MODERATOR")
     void removePost_ok() throws Exception {
         PostResponse post = PostResponse.builder()

@@ -26,6 +26,7 @@ public class PostRepositoryTest {
     @Autowired
     private PostRepository postRepository;
 
+
     @Test
     void findByCreatedAtAfterAndCategorieAndStatutNotOrderByCreatedAtDesc_filtreCorrectement() {
 
@@ -212,4 +213,83 @@ public class PostRepositoryTest {
         assertThat(resultat.get(1).getSparksCount()).isEqualTo(2);
 
     }
+
+
+
+    @Test
+    void findNextEligiblePost_departageLesExAequoParLePlusAncien () {
+
+        User user = User.builder()
+                .pseudo("Tester")
+                .email("tester@gudnuz.com")
+                .password("hash")
+                .role(Role.USER)
+                .build();
+        testEntityManager.persist(user);
+
+
+
+
+        Post bonPostFive = Post.builder()
+                .titre("Bon post five")
+                .contenu("contenu")
+                .categorie(Categorie.ACTU)
+                .sparksCount(5)
+                .statut(null)
+                .user(user)
+                .build();
+        testEntityManager.persist(bonPostFive);
+
+
+        Post bonPostFiveOld = Post.builder()
+                .titre("Bon post five Old")
+                .contenu("contenu")
+                .categorie(Categorie.ACTU)
+                .sparksCount(5)
+                .statut(null)
+                .user(user)
+                .build();
+        testEntityManager.persist(bonPostFiveOld);
+
+        Post bonPostTwo = Post.builder()
+                .titre("Bon post")
+                .contenu("contenu")
+                .categorie(Categorie.ACTU)
+                .sparksCount(2)
+                .statut(null)
+                .user(user)
+                .build();
+        testEntityManager.persist(bonPostTwo);
+
+
+        testEntityManager.getEntityManager()
+                .createQuery("UPDATE Post p SET p.createdAt = :date WHERE p.id = :id")
+                .setParameter("date", LocalDateTime.now().minusHours(22))
+                .setParameter("id", bonPostFiveOld.getId())
+                .executeUpdate();
+
+
+        Post postRemoved = Post.builder()
+                .titre("Post Supprimé")
+                .contenu("contenu")
+                .categorie(Categorie.ACTU)
+                .statut(PostStatut.REMOVED)
+                .user(user)
+                .build();
+        testEntityManager.persist(postRemoved);
+
+
+
+
+        testEntityManager.flush();
+        testEntityManager.clear();
+
+        List<Post> resultat = postRepository.findNextEligiblePost(LocalDateTime.now().minusHours(24));
+
+
+        assertThat(resultat.get(0).getId()).isEqualTo(bonPostFiveOld.getId());
+
+
+    }
+
 }

@@ -47,7 +47,8 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
 
     // Dédiée à l'élection : contrairement à findTopPostsSince (feed "TOP", qui garde les posts déjà
     // ELECTED), on exclut ici tout post déjà élu pour ne jamais réélire le même deux fois de suite.
-    @Query("SELECT p FROM Post p WHERE p.createdAt > :since AND p.statut IS NULL ORDER BY p.sparksCount DESC")
+    // à Sparks égaux, le plus ancien gagne.
+    @Query("SELECT p FROM Post p WHERE p.createdAt > :since AND p.statut IS NULL ORDER BY p.sparksCount DESC, p.createdAt ASC")
     List<Post> findNextEligiblePost(@Param("since") LocalDateTime since);
 
 

@@ -1,10 +1,13 @@
 package com.gudnuz.api.service;
 
 import com.gudnuz.api.exception.BusinessException;
+import com.gudnuz.api.model.Post;
 import com.gudnuz.api.model.enums.Categorie;
 import com.gudnuz.api.model.enums.PostStatut;
 import com.gudnuz.api.repository.PostRepository;
 import com.gudnuz.api.model.User;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import com.gudnuz.api.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -16,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -92,4 +97,9 @@ public class PostServiceTest {
         );
 
     }
+
+
+
+
+
 }

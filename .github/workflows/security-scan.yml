@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout du code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       # `cache: maven` = cache standard des dépendances Maven (~/.m2/repository), avec une clé
       # basée sur le hash du pom.xml : il n'est ré-uploadé que quand les dépendances changent.

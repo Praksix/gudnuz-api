@@ -80,7 +80,7 @@ jobs:
         run: echo "date=$(date -u '+%Y%m%d')" >> "$GITHUB_OUTPUT"
 
       - name: Cache de la base CVE (Dependency-Check)
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           # Doit correspondre exactement au <dataDirectory> du pom.xml.
           path: ~/.dependency-check-data
